@@ -4,7 +4,7 @@
 :root {
   --bg: #ffffff;
   --text: #333333;
-  --muted: #8a8a8a;
+  --muted: #5f5f5f;
   --rule: #e6e6e6;
   --link: brown;
   --accent: deeppink;
@@ -81,7 +81,7 @@ input[type=checkbox] { accent-color: var(--accent); border: 0; }
   left: 14px;
   bottom: 10px;
   color: var(--muted);
-  font-size: 11.5px;
+  font-size: 14px;
   pointer-events: none;
 }
 #splitter { cursor: col-resize; background: #333; }
@@ -99,7 +99,7 @@ input[type=checkbox] { accent-color: var(--accent); border: 0; }
 .litegraph .litemenu-title, .litegraph.litecontextmenu .litemenu-entry, .litegraph.litecontextmenu .litemenu-entry.submenu {
   background: #fff !important;
   color: var(--text) !important;
-  font-size: 12px !important;
+  font-size: 14px !important;
 }
 .litegraph .litemenu-entry:hover:not(.disabled):not(.separator) {
   background: #fff !important;
@@ -123,11 +123,11 @@ input[type=checkbox] { accent-color: var(--accent); border: 0; }
 .litegraph.lite-search-item {
   background: #fff !important;
   color: var(--text) !important;
-  font-size: 12px !important;
+  font-size: 14px !important;
   padding: 2px 10px !important;
   text-transform: lowercase; /* type ids read like the site's paths: primitive/box */
 }
-.litegraph.litesearchbox input, .litegraph.litesearchbox .name { font-size: 12px !important; }
+.litegraph.litesearchbox input, .litegraph.litesearchbox .name { font-size: 14px !important; }
 .litegraph.lite-search-item.generic_type { color: var(--muted) !important; }
 .litegraph.lite-search-item.selected, .litegraph.lite-search-item:hover { color: var(--accent) !important; background: #fff !important; }
 .graphdialog, .litegraph .graphdialog {
@@ -157,7 +157,7 @@ input[type=checkbox] { accent-color: var(--accent); border: 0; }
   right: 140px; /* wrap before the /view/ /frame/ links */
   top: 12px;
   pointer-events: none;
-  font-size: 12px;
+  font-size: 14px;
   font-variant-numeric: tabular-nums;
   color: var(--hud, var(--text));
 }
@@ -166,7 +166,7 @@ input[type=checkbox] { accent-color: var(--accent); border: 0; }
 #stop[hidden] { display: none; }
 
 /* links on top of the 3D view use its readable ink colour */
-#viewport > button, #stop { color: var(--hud, var(--link)); font-size: 12px; pointer-events: auto; }
+#viewport > button, #stop { color: var(--hud, var(--link)); font-size: 14px; pointer-events: auto; }
 #viewport > button:hover, #stop:hover, #view-toggle.on { color: var(--accent); }
 #stop { margin-top: 6px; }
 #frame { position: absolute; right: 16px; top: 12px; }
@@ -181,7 +181,7 @@ input[type=checkbox] { accent-color: var(--accent); border: 0; }
   background: #fff;
   color: var(--text);
   padding: 12px 14px 14px;
-  font-size: 12px;
+  font-size: 14px;
 }
 #view-panel[hidden] { display: none; }
 .vp-row { display: flex; align-items: baseline; gap: 8px; margin: 7px 0; }
@@ -205,7 +205,7 @@ input[type=checkbox] { accent-color: var(--accent); border: 0; }
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
-  font-size: 11.5px;
+  font-size: 14px;
   pointer-events: none;
 }
 #legend[hidden] { display: none; }

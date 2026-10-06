@@ -31,7 +31,7 @@ for (const [key, def] of Object.entries(NODE_TYPES)) {
     this.shape = LiteGraph.BOX_SHAPE;
     this.serialize_widgets = true; // otherwise saved graphs lose every value
     this.size = this.computeSize();
-    this.size[0] = Math.max(this.size[0], 190);
+    this.fitWidth();
   }
   MeshNode.title = def.title.toLowerCase();
   MeshNode.prototype.applyTheme = function () {
@@ -41,7 +41,9 @@ for (const [key, def] of Object.entries(NODE_TYPES)) {
   };
   // colours come from the theme, not the file: graphs saved under an older
   // theme would otherwise bring their node colours back on load
-  MeshNode.prototype.onConfigure = function () { this.applyTheme(); };
+  // graphs saved with smaller type would clip their labels, so widen them
+  MeshNode.prototype.fitWidth = function () { this.size[0] = Math.max(this.size[0], this.computeSize()[0], 240); };
+  MeshNode.prototype.onConfigure = function () { this.applyTheme(); this.fitWidth(); };
   MeshNode.prototype.onSerialize = function (o) { delete o.color; delete o.bgcolor; delete o.boxcolor; };
   // LiteGraph only outlines selected nodes; on white every node needs an edge
   MeshNode.prototype.onDrawForeground = function (ctx) {
@@ -81,6 +83,7 @@ LGraphCanvas.prototype.renderLink = function (ctx, a, b, link, skipBorder, flow,
   finally { this.highlighted_links[link.id] = true; }
 };
 
+LiteGraph.NODE_TEXT_SIZE = 15; // used to size nodes to their titles
 LiteGraph.NODE_TITLE_COLOR = '#111111';
 LiteGraph.NODE_SELECTED_TITLE_COLOR = '#000000';
 LiteGraph.NODE_TEXT_COLOR = '#5c5c5c';
@@ -99,10 +102,10 @@ const lgc = new LGraphCanvas($('#graph-canvas'), graph);
 window.squishables = { graph, canvas: lgc }; // handle for debugging from the console
 lgc.render_canvas_border = false;
 lgc.show_info = false;
-lgc.title_text_font = `12px ${MONO}`;
-lgc.inner_text_font = `11px ${MONO}`;
+lgc.title_text_font = `15px ${MONO}`;
+lgc.inner_text_font = `13px ${MONO}`;
 // canvas text only uses the web font once it has loaded
-document.fonts?.load(`12px ${MONO}`).then(() => lgc.setDirty(true, true));
+document.fonts?.load(`15px ${MONO}`).then(() => lgc.setDirty(true, true));
 lgc.clear_background_color = '#ffffff';
 lgc.render_shadows = false;
 lgc.render_connections_border = false;
@@ -148,9 +151,8 @@ function fitView() {
   }
   const { width: w, height: h } = $('#graph-canvas');
   const pad = 40;
-  // below ~0.6 LiteGraph drops labels and widgets, so never zoom out further
-  // than 0.75; a wider graph is anchored at its left edge instead
-  const scale = Math.max(0.75, Math.min(1, (w - pad * 2) / (x1 - x0), (h - pad * 2) / (y1 - y0)));
+  // never zoom out: text stays legible, a wider graph is anchored at its left edge
+  const scale = 1;
   const fitsX = (x1 - x0) * scale <= w - pad * 2;
   lgc.ds.scale = scale;
   lgc.ds.offset = [
@@ -215,7 +217,7 @@ function loadPreset(p) {
   for (const nd of p.nodes) {
     const def = NODE_TYPES[nd.type];
     const node = LiteGraph.createNode(`${def.cat}/${nd.type}`);
-    node.pos = nd.pos.slice();
+    node.pos = [nd.pos[0] * 1.1, nd.pos[1]]; // room for the node titles
     for (const w of node.widgets ?? []) if (nd.params[w.name] !== undefined) w.value = nd.params[w.name];
     graph.add(node);
     made[nd.id] = node;
