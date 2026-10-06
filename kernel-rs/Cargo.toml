@@ -1,0 +1,15 @@
+[package]
+name = "squishables-kernel"
+version = "0.1.0"
+edition = "2021"
+description = "squishables geometry kernel, compiled to WebAssembly (no dependencies, plain C ABI)"
+
+[lib]
+crate-type = ["cdylib"]
+path = "src/lib.rs"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"

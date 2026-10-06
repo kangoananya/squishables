@@ -1,0 +1,6 @@
+# WebAssembly features supported by every current browser (Chrome 91+,
+# Firefox 89+, Safari 16.4+): SIMD lets LLVM vectorise loops, bulk-memory makes
+# memcpy/memset single instructions, nontrapping-fptoint removes range checks
+# from float→int casts (used by the hashing in weld / conform).
+[target.wasm32-unknown-unknown]
+rustflags = ["-C", "target-feature=+simd128,+bulk-memory,+nontrapping-fptoint,+sign-ext"]

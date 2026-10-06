@@ -1,0 +1,141 @@
+:root {
+  --bg: #15171a;
+  --panel: #23262b;
+  --card: #2b2f35;
+  --line: #3a3f47;
+  --text: #e6e3dc;
+  --muted: #9a9ca3;
+  --accent: #ffab19;
+  --danger: #d9534f;
+  font: 13px/1.4 system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  --left: 55%;
+  margin: 0;
+  height: 100vh;
+  display: grid;
+  grid-template-columns: var(--left) 6px 1fr;
+  grid-template-rows: auto 1fr;
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden;
+}
+
+#topbar {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+#topbar h1 { font-size: 17px; margin: 0 8px 0 0; letter-spacing: 0.02em; }
+#topbar label { display: flex; align-items: center; gap: 5px; color: var(--muted); }
+.sep { width: 1px; height: 20px; background: var(--line); }
+.grow { flex: 1; }
+
+button, select, input {
+  font: inherit;
+  color: var(--text);
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 4px 9px;
+}
+button { cursor: pointer; }
+button:hover, select:hover { border-color: #5a606a; }
+.num { width: 76px; }
+#export-stl, #export-obj { border-color: #6b5524; }
+
+#graph { position: relative; min-width: 0; min-height: 0; overflow: hidden; }
+#graph canvas { display: block; }
+#graph-hint {
+  position: absolute;
+  left: 12px;
+  bottom: 10px;
+  color: var(--muted);
+  font-size: 12px;
+  pointer-events: none;
+}
+
+#splitter { cursor: col-resize; background: var(--line); }
+#splitter:hover { background: var(--accent); }
+
+
+#viewport {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(255, 171, 25, 0.16), transparent 55%),
+    radial-gradient(ellipse at 80% 85%, rgba(102, 120, 255, 0.22), transparent 60%),
+    linear-gradient(160deg, #2a2338 0%, #171a24 55%, #0e1418 100%);
+}
+#viewport canvas { display: block; }
+#hud {
+  position: absolute;
+  left: 12px;
+  top: 10px;
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+  color: var(--hud, var(--text));
+}
+#status.error { color: var(--danger); }
+#stop { pointer-events: auto; margin-top: 6px; border-color: var(--danger); }
+#stop[hidden] { display: none; }
+#warning { color: #f2cc8f; max-width: 420px; }
+#frame { position: absolute; right: 12px; top: 10px; }
+#view-toggle { position: absolute; right: 84px; top: 10px; }
+#view-toggle.on { border-color: var(--accent); color: var(--accent); }
+
+#view-panel {
+  position: absolute;
+  right: 12px;
+  top: 48px;
+  width: 270px;
+  z-index: 2;
+  background: rgba(30, 32, 37, 0.94);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: var(--text);
+}
+#view-panel[hidden] { display: none; }
+.vp-row { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
+.vp-row > span { width: 78px; flex: none; color: var(--muted); }
+.vp-row select, .vp-row input[type=range] { flex: 1; min-width: 0; }
+.vp-row input[type=range] { accent-color: var(--accent); }
+.vp-row output { width: 30px; text-align: right; font-variant-numeric: tabular-nums; }
+.vp-row input[type=color] { width: 44px; height: 26px; padding: 0 2px; }
+.vp-title { color: var(--muted); margin: 10px 0 6px; }
+.vp-swatches { display: grid; grid-template-columns: repeat(9, 1fr); gap: 5px; }
+.vp-swatch { aspect-ratio: 1; padding: 0; border-radius: 5px; border: 2px solid transparent; color: #fff; font-weight: 700; }
+.vp-swatch.on { border-color: var(--accent); }
+.vp-png { width: 100%; margin-top: 10px; }
+
+
+#legend {
+  position: absolute;
+  left: 12px;
+  bottom: 10px;
+  color: var(--hud, var(--text));
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  pointer-events: none;
+}
+.chip { display: flex; align-items: center; gap: 4px; }
+.chip.empty { opacity: 0.35; }
+.chip i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+
+@media (max-width: 760px) {
+  body { grid-template-columns: 1fr; grid-template-rows: auto 45vh 0 1fr; }
+  #splitter { display: none; }
+}

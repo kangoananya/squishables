@@ -1,0 +1,34 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>squishables worker bench</title>
+<pre id="out">running…</pre>
+<script type="module">
+  // Times the real evaluation worker (no viewport) with the Rust/WASM and the
+  // JS kernel on the same graphs: woven dodecahedron at 3 and 4 loops.
+  import { GRAPH_PRESETS, toCompiled } from '../src/graph-presets.js';
+
+  const out = document.getElementById('out');
+  const lines = [];
+  function run(kernel, graph) {
+    const w = new Worker(new URL(`../src/worker.js?kernel=${kernel}`, import.meta.url), { type: 'module' });
+    const go = (id) => new Promise((resolve) => {
+      w.onmessage = (e) => resolve(e.data.stats);
+      w.postMessage({ id, type: 'preview', job: { kind: 'graph', data: { ...graph, seed: id } }, maxFaces: 20e6, edges: false });
+    });
+    return (async () => {
+      const times = [];
+      for (let i = 1; i <= 4; i++) times.push((await go(i)).evalMs); // new seed each time → no cache hits
+      w.terminate();
+      return Math.min(...times);
+    })();
+  }
+  for (const loops of [3, 4]) {
+    const g = toCompiled(GRAPH_PRESETS[1]);
+    g.nodes[5].params.times = loops;
+    for (const kernel of ['js', 'wasm']) {
+      lines.push(`woven x${loops}  ${kernel.padEnd(4)}  best ${(await run(kernel, g)).toFixed(0)} ms`);
+      out.textContent = lines.join('\n');
+    }
+  }
+  out.textContent += '\nDONE';
+</script>

@@ -1,0 +1,13 @@
+{
+  "name": "squishables",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Web-based rule-based mesh subdivision playground",
+  "type": "module",
+  "scripts": {
+    "start": "node serve.mjs",
+    "bench": "node tools/bench.mjs",
+    "build:wasm": "node tools/build-wasm.mjs",
+    "parity": "node tools/parity.mjs"
+  }
+}
