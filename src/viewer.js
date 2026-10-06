@@ -138,10 +138,10 @@ export function createApp({ getJob, emptyHint = '' }) {
     busySince = performance.now();
     setStatus('computing…');
     tickBusy();
-    const { mode, contourAxis, contourCount, pointCount } = display;
+    const { mode, contourAxis, contourDensity, pointCount } = display;
     worker.postMessage({
       id: ++reqId, type: 'preview', job: getJob(), maxFaces: view.maxFaces, edges: view.edges,
-      display: { mode, contourAxis, contourCount, pointCount },
+      display: { mode, contourAxis, contourDensity, pointCount },
     });
   }
 
@@ -257,6 +257,7 @@ export function createApp({ getJob, emptyHint = '' }) {
     if (!materials[mode]) return;
     view.colorMode = mode;
     $('#color').value = mode;
+    $('#legend').hidden = mode !== 'tag'; // tag colours only matter in that mode
     applyDisplay();
   }
 

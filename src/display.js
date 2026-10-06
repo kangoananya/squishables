@@ -3,7 +3,7 @@
 // Backgrounds are data, so the same gradient can be shown as CSS behind the
 // transparent WebGL canvas and painted into an exported PNG.
 
-const STORAGE_KEY = 'squishables.view.v1';
+const STORAGE_KEY = 'squishables.view.v2';
 
 export const MODES = [
   ['shaded', 'shaded'],
@@ -14,6 +14,7 @@ export const MODES = [
 ];
 
 export const BACKGROUNDS = {
+  white: { label: 'White', type: 'solid', stops: [[0, '#ffffff']] },
   dusk: { label: 'Dusk', type: 'linear', angle: 160, stops: [[0, '#2a2338'], [0.55, '#171a24'], [1, '#0e1418']] },
   night: { label: 'Night', type: 'radial', stops: [[0, '#232a3a'], [1, '#05060a']] },
   studio: { label: 'Studio', type: 'radial', stops: [[0, '#ffffff'], [0.6, '#e2dfda'], [1, '#b9b5ae']] },
@@ -26,12 +27,12 @@ export const BACKGROUNDS = {
 
 export const DEFAULT_DISPLAY = {
   mode: 'shaded',
-  contourAxis: 'z',
-  contourCount: 80,
+  contourAxis: 'radial',
+  contourDensity: 1, // × the automatic spacing (see toContours)
   pointCount: 200_000,
   pointSize: 1.5,
   hiddenLines: true,
-  background: 'dusk',
+  background: 'white',
   custom: { a: '#3a2d5c', b: '#0d1117', angle: 160, radial: false },
 };
 
@@ -148,7 +149,7 @@ export function buildViewPanel(display, onChange) {
     if (contours) {
       panel.append(
         row('slice', select([['z', 'height (z)'], ['x', 'x'], ['y', 'y'], ['radial', 'radial shells']], d.contourAxis, set('geometry', (v) => { d.contourAxis = v; }))),
-        row('lines', range(10, 300, 1, d.contourCount, set('geometry', (v) => { d.contourCount = v; })), h('output', {}, String(d.contourCount))),
+        row('density', range(0.25, 4, 0.05, d.contourDensity, set('geometry', (v) => { d.contourDensity = v; })), h('output', {}, `×${d.contourDensity.toFixed(2)}`)),
       );
     }
     if (d.mode === 'points') {

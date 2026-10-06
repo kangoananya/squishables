@@ -38,7 +38,7 @@ body {
   padding: 14px 20px 12px;
   flex-wrap: wrap;
 }
-#topbar h1 { font: 700 13.6px/1.6 var(--mono); margin: 0; letter-spacing: 0.02em; }
+#topbar h1 { font: 700 16px/1.4 var(--mono); margin: 0; letter-spacing: 0.02em; }
 #topbar label { display: flex; align-items: baseline; gap: 6px; color: var(--muted); }
 .group { display: flex; align-items: baseline; gap: 10px; }
 .grow { flex: 1; }
@@ -73,23 +73,78 @@ input[type=checkbox] { accent-color: var(--accent); border: 0; }
 
 /* ---------------------------------------------------------------- node editor */
 
-#graph { position: relative; min-width: 0; min-height: 0; overflow: hidden; background: #000; }
+#graph { position: relative; min-width: 0; min-height: 0; overflow: hidden; background: #fff; }
 #graph canvas { display: block; }
 #graph-hint {
   position: absolute;
   left: 14px;
   bottom: 10px;
-  color: #6a6a6a;
+  color: var(--muted);
   font-size: 11.5px;
   pointer-events: none;
 }
-#splitter { cursor: col-resize; background: #000; }
+#splitter { cursor: col-resize; background: var(--rule); }
 #splitter:hover { background: var(--accent); }
 
-/* LiteGraph menus, search box and value prompt in the same type */
+/* LiteGraph menus, search box and value prompt: white, same type */
 .litegraph, .litegraph .litemenu-entry, .litegraph.litesearchbox, .graphdialog, .graphdialog input {
   font-family: var(--mono) !important;
 }
+.litegraph.litecontextmenu, .litegraph.litecontextmenu.dark {
+  background: #fff !important;
+  box-shadow: 0 0 0 1px var(--rule) !important;
+  padding: 4px 0 !important;
+}
+.litegraph .litemenu-title, .litegraph.litecontextmenu .litemenu-entry, .litegraph.litecontextmenu .litemenu-entry.submenu {
+  background: #fff !important;
+  color: var(--text) !important;
+  font-size: 12px !important;
+}
+.litegraph .litemenu-entry:hover:not(.disabled):not(.separator) {
+  background: #fff !important;
+  color: var(--accent) !important;
+  text-decoration: line-through;
+}
+.litegraph .litemenu-entry.separator { background: var(--rule) !important; }
+.litegraph.litesearchbox {
+  background: #fff !important;
+  color: var(--text) !important;
+  border: 1px solid var(--rule) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+.litegraph.litesearchbox input, .litegraph.litesearchbox select {
+  background: #fff !important;
+  color: var(--text) !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--rule) !important;
+}
+.litegraph.lite-search-item {
+  background: #fff !important;
+  color: var(--text) !important;
+  font-size: 12px !important;
+  padding: 2px 10px !important;
+  text-transform: lowercase; /* type ids read like the site's paths: primitive/box */
+}
+.litegraph.litesearchbox input, .litegraph.litesearchbox .name { font-size: 12px !important; }
+.litegraph.lite-search-item.generic_type { color: var(--muted) !important; }
+.litegraph.lite-search-item.selected, .litegraph.lite-search-item:hover { color: var(--accent) !important; background: #fff !important; }
+.graphdialog, .litegraph .graphdialog {
+  background: #fff !important;
+  color: var(--text) !important;
+  border: 1px solid var(--rule) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+.graphdialog .name { color: var(--muted) !important; }
+.graphdialog input, .graphdialog .value {
+  background: #fff !important;
+  color: var(--text) !important;
+  border: 0 !important;
+  border-bottom: 1px solid #cfcfcf !important;
+  border-radius: 0 !important;
+}
+.graphdialog button { color: var(--link) !important; background: none !important; border: 0 !important; }
 
 /* ---------------------------------------------------------------- viewport */
 
@@ -134,7 +189,7 @@ input[type=checkbox] { accent-color: var(--accent); border: 0; }
 .vp-row output { width: 30px; text-align: right; font-variant-numeric: tabular-nums; }
 .vp-row input[type=color] { width: 40px; height: 22px; padding: 0; border: 1px solid var(--rule); align-self: center; }
 .vp-title { color: var(--muted); margin: 12px 0 6px; }
-.vp-swatches { display: grid; grid-template-columns: repeat(9, 1fr); gap: 4px; }
+.vp-swatches { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; }
 .vp-swatch { aspect-ratio: 1; padding: 0; border: 1px solid var(--rule); color: #fff; font-weight: 700; }
 .vp-swatch:hover { text-decoration: none; border-color: var(--accent); }
 .vp-swatch.on { outline: 2px solid var(--accent); outline-offset: 1px; }
@@ -151,6 +206,7 @@ input[type=checkbox] { accent-color: var(--accent); border: 0; }
   font-size: 11.5px;
   pointer-events: none;
 }
+#legend[hidden] { display: none; }
 .chip { display: flex; align-items: center; gap: 5px; }
 .chip.empty { opacity: 0.35; }
 .chip i { width: 8px; height: 8px; display: inline-block; }

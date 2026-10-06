@@ -46,7 +46,7 @@ self.onmessage = async (e) => {
       const r = toRenderBuffers(buf, wantEdges && buf.nFaces < EDGE_LIMIT);
       const highlight = selected && selected.nFaces < 300_000 ? toEdges(selected) : null;
       const contours = mode === 'contours' || mode === 'shaded+contours'
-        ? toContours(buf, { axis: display.contourAxis, count: display.contourCount })
+        ? toContours(buf, { axis: display.contourAxis, density: display.contourDensity })
         : null;
       const points = mode === 'points' ? toPoints(buf, { count: display.pointCount, seed: job.data?.seed }) : null;
       const transfer = [r.position.buffer, r.index.buffer, r.color.buffer];

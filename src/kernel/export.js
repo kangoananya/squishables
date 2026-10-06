@@ -41,23 +41,24 @@ export function toRenderBuffers(buf, withEdges) {
   return { position, color, index, edges, tagCounts, tris };
 }
 
-// Contour lines: the mesh sliced by `count` evenly spaced levels of a scalar
-// field (x, y, z, or distance from the centre for 'radial'), as segment pairs.
-export function toContours(buf, { axis = 'z', count = 60 } = {}) {
+// Contour lines: the mesh sliced by evenly spaced levels of a scalar field
+// (x, y, z, or distance from the centre for 'radial'), as segment pairs.
+// Spacing is automatic: about 120 lines across the object's diagonal, never
+// finer than the mesh's own face size, scaled by `density`. That keeps the
+// line density similar for every model and slicing direction.
+export function toContours(buf, { axis = 'z', density = 1 } = {}) {
   const { pos, start, count: fc } = buf;
   const nV = buf.nVerts;
   const field = new Float32Array(nV);
-  let cx = 0, cy = 0, cz = 0;
-  if (axis === 'radial') {
-    let x0 = Infinity, y0 = Infinity, z0 = Infinity, x1 = -Infinity, y1 = -Infinity, z1 = -Infinity;
-    for (let v = 0; v < nV; v++) {
-      const x = pos[v * 3], y = pos[v * 3 + 1], z = pos[v * 3 + 2];
-      if (x < x0) x0 = x; if (x > x1) x1 = x;
-      if (y < y0) y0 = y; if (y > y1) y1 = y;
-      if (z < z0) z0 = z; if (z > z1) z1 = z;
-    }
-    cx = (x0 + x1) / 2; cy = (y0 + y1) / 2; cz = (z0 + z1) / 2;
+  let x0 = Infinity, y0 = Infinity, z0 = Infinity, x1 = -Infinity, y1 = -Infinity, z1 = -Infinity;
+  for (let v = 0; v < nV; v++) {
+    const x = pos[v * 3], y = pos[v * 3 + 1], z = pos[v * 3 + 2];
+    if (x < x0) x0 = x; if (x > x1) x1 = x;
+    if (y < y0) y0 = y; if (y > y1) y1 = y;
+    if (z < z0) z0 = z; if (z > z1) z1 = z;
   }
+  const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, cz = (z0 + z1) / 2;
+  const diag = Math.hypot(x1 - x0, y1 - y0, z1 - z0);
   const k = { x: 0, y: 1, z: 2 }[axis];
   let lo = Infinity, hi = -Infinity;
   for (let v = 0; v < nV; v++) {
@@ -66,7 +67,20 @@ export function toContours(buf, { axis = 'z', count = 60 } = {}) {
     if (f < lo) lo = f;
     if (f > hi) hi = f;
   }
-  const h = (hi - lo) / Math.max(1, count);
+  let area = 0;
+  for (let f = 0; f < buf.nFaces; f++) {
+    const s = start[f] * 3;
+    for (let i = 1; i < fc[f] - 1; i++) {
+      const a = s, b = s + i * 3, c = s + (i + 1) * 3;
+      const ux = pos[b] - pos[a], uy = pos[b + 1] - pos[a + 1], uz = pos[b + 2] - pos[a + 2];
+      const vx = pos[c] - pos[a], vy = pos[c + 1] - pos[a + 1], vz = pos[c + 2] - pos[a + 2];
+      area += Math.hypot(uy * vz - uz * vy, uz * vx - ux * vz, ux * vy - uy * vx) / 2;
+    }
+  }
+  const faceSize = Math.sqrt(area / Math.max(1, buf.nFaces));
+  const spacing = Math.max(diag / 120, faceSize * 1.2) / Math.max(0.05, density);
+  const count = Math.min(4000, Math.max(1, Math.round((hi - lo) / spacing)));
+  const h = (hi - lo) / count;
   if (!(h > 0)) return new Float32Array(0);
 
   let out = new Float32Array(1 << 16);

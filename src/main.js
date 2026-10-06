@@ -6,15 +6,17 @@ import { createApp, $, el, download } from './viewer.js';
 
 const STORAGE_KEY = 'squishables.graph.v1';
 
-// monochrome nodes; the category shows only in the small square of the title
+// palette of kango.work: magenta, black and greys only; the category shows
+// in the small square of each node's title
+const MAGENTA = '#ff1493';
 const CAT = {
-  Primitive: '#a52a2a',
-  Split: '#4f7fbf',
-  Extrude: '#8a6fd1',
-  Subdivide: '#3aa57a',
-  Logic: '#ff1493',
-  Loop: '#d2691e',
-  Mesh: '#9a9a9a',
+  Primitive: '#000000',
+  Split: '#5c5c5c',
+  Extrude: '#9a9a9a',
+  Subdivide: MAGENTA,
+  Logic: '#c4c4c4',
+  Loop: MAGENTA,
+  Mesh: '#333333',
 };
 const MONO = "'Roboto Mono', ui-monospace, monospace";
 
@@ -36,8 +38,8 @@ for (const [key, def] of Object.entries(NODE_TYPES)) {
     for (const [name, type] of def.inputs) this.addInput(name, type);
     for (const [name, type] of def.outputs) this.addOutput(name, type);
     for (const [name, spec] of Object.entries(def.params)) addParamWidget(this, name, spec);
-    this.color = '#161616';
-    this.bgcolor = '#0b0b0b';
+    this.color = '#f2f2f2';
+    this.bgcolor = '#ffffff';
     this.boxcolor = CAT[def.cat];
     this.shape = LiteGraph.BOX_SHAPE;
     this.serialize_widgets = true; // otherwise saved graphs lose every value
@@ -45,6 +47,14 @@ for (const [key, def] of Object.entries(NODE_TYPES)) {
     this.size[0] = Math.max(this.size[0], 190);
   }
   MeshNode.title = def.title.toLowerCase();
+  // LiteGraph only outlines selected nodes; on white every node needs an edge
+  MeshNode.prototype.onDrawForeground = function (ctx) {
+    if (this.flags.collapsed || this.is_selected) return;
+    const th = LiteGraph.NODE_TITLE_HEIGHT;
+    ctx.strokeStyle = '#cfcfcf';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(0.5, -th + 0.5, this.size[0] - 1, this.size[1] + th - 1);
+  };
   LiteGraph.registerNodeType(lgType, MeshNode);
 }
 
@@ -65,28 +75,30 @@ LGraphCanvas.prototype.prompt = function (title, value, callback, ...rest) {
   return prompt.call(this, title, value, (v) => callback(decimalComma(v)), ...rest);
 };
 
-// black canvas with a very coarse grid (one line every 240 graph units)
+// white canvas with a very coarse grid (one line every 240 graph units)
 function coarseGrid(size = 240) {
   const c = document.createElement('canvas');
   c.width = c.height = size;
   const ctx = c.getContext('2d');
-  ctx.fillStyle = '#000';
+  ctx.fillStyle = '#fff';
   ctx.fillRect(0, 0, size, size);
-  ctx.fillStyle = '#2b2b2b';
+  ctx.fillStyle = '#ececec';
   ctx.fillRect(0, 0, size, 1);
   ctx.fillRect(0, 0, 1, size);
   return c.toDataURL();
 }
 
-LiteGraph.NODE_TITLE_COLOR = '#e8e8e8';
-LiteGraph.NODE_SELECTED_TITLE_COLOR = '#ffffff';
-LiteGraph.NODE_TEXT_COLOR = '#bdbdbd';
-LiteGraph.WIDGET_BGCOLOR = '#141414';
-LiteGraph.WIDGET_OUTLINE_COLOR = '#2c2c2c';
-LiteGraph.WIDGET_TEXT_COLOR = '#ededed';
+LiteGraph.NODE_TITLE_COLOR = '#111111';
+LiteGraph.NODE_SELECTED_TITLE_COLOR = '#000000';
+LiteGraph.NODE_TEXT_COLOR = '#5c5c5c';
+LiteGraph.NODE_BOX_OUTLINE_COLOR = MAGENTA; // selection outline
+LiteGraph.WIDGET_BGCOLOR = '#f4f4f4';
+LiteGraph.WIDGET_OUTLINE_COLOR = '#dcdcdc';
+LiteGraph.WIDGET_TEXT_COLOR = '#222222';
 LiteGraph.WIDGET_SECONDARY_TEXT_COLOR = '#8a8a8a';
 LiteGraph.NODE_DEFAULT_SHAPE = 'box';
-Object.assign(LGraphCanvas.link_type_colors, { faces: '#d6d6d6', condition: '#ff1493', loop: '#d2691e' });
+LiteGraph.LINK_COLOR = '#9a9a9a';
+Object.assign(LGraphCanvas.link_type_colors, { faces: '#9a9a9a', condition: MAGENTA, loop: '#000000' });
 
 // ---------------------------------------------------------------- canvas
 const graph = new LGraph();
@@ -98,7 +110,11 @@ lgc.title_text_font = `12px ${MONO}`;
 lgc.inner_text_font = `11px ${MONO}`;
 // canvas text only uses the web font once it has loaded
 document.fonts?.load(`12px ${MONO}`).then(() => lgc.setDirty(true, true));
-lgc.clear_background_color = '#000000';
+lgc.clear_background_color = '#ffffff';
+lgc.render_shadows = false;
+lgc.render_connections_border = false;
+lgc.default_connection_color = { input_off: '#c4c4c4', input_on: '#5c5c5c', output_off: '#c4c4c4', output_on: '#5c5c5c' };
+lgc.default_connection_color_byType = { condition: MAGENTA, loop: '#000000' };
 lgc.background_image = coarseGrid();
 lgc.onSelectionChange = (nodes) => {
   const ids = Object.keys(nodes ?? {});
