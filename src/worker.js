@@ -11,7 +11,7 @@ const kernel = (new URL(import.meta.url).searchParams.get('kernel') === 'js'
   (err) => { console.warn('squishables: WASM kernel unavailable, using JS', err); return 'js'; },
 );
 
-const EDGE_LIMIT = 2_000_000; // polygon outlines (edges / wireframe) up to this many faces
+const EDGE_LIMIT = 2_000_000; // wireframe up to this many faces
 // node outputs survive between previews, so an edit only recomputes downstream
 const graphCache = new Map();
 
@@ -33,7 +33,7 @@ function evaluate(job, maxFaces, cache) {
 }
 
 self.onmessage = async (e) => {
-  const { id, type, job, maxFaces, edges, format, display = {} } = e.data;
+  const { id, type, job, maxFaces, format, display = {} } = e.data;
   const kernelName = await kernel;
   try {
     const t0 = performance.now();
@@ -42,7 +42,7 @@ self.onmessage = async (e) => {
 
     if (type === 'preview') {
       const mode = display.mode ?? 'shaded';
-      const wantEdges = mode === 'wire' || edges;
+      const wantEdges = mode === 'wire'; // edges are only drawn as wireframe
       const r = toRenderBuffers(buf, wantEdges && buf.nFaces < EDGE_LIMIT);
       const highlight = selected && selected.nFaces < 300_000 ? toEdges(selected) : null;
       const contours = mode === 'contours' || mode === 'shaded+contours'

@@ -28,7 +28,7 @@ export function download(blob, name) {
 }
 
 export function createApp({ getJob, emptyHint = '' }) {
-  const view = { colorMode: 'normal', edges: true, maxFaces: 2_000_000 };
+  const view = { colorMode: 'normal', maxFaces: 2_000_000 };
   let faceCount = 0;
   const params = new URLSearchParams(location.search);
   const display = loadDisplay();
@@ -140,7 +140,7 @@ export function createApp({ getJob, emptyHint = '' }) {
     tickBusy();
     const { mode, contourAxis, contourDensity, pointCount } = display;
     worker.postMessage({
-      id: ++reqId, type: 'preview', job: getJob(), maxFaces: view.maxFaces, edges: view.edges,
+      id: ++reqId, type: 'preview', job: getJob(), maxFaces: view.maxFaces,
       display: { mode, contourAxis, contourDensity, pointCount },
     });
   }
@@ -216,7 +216,7 @@ export function createApp({ getJob, emptyHint = '' }) {
     applyDisplay();
     if (frameNext && m.stats.faces) { frameMesh(); frameNext = false; }
     const s = m.stats;
-    if (s.edgesSkipped) s.warning = [s.warning, 'Edges / wireframe are only drawn below 2,000,000 faces.'].filter(Boolean).join(' ');
+    if (s.edgesSkipped) s.warning = [s.warning, 'Wireframe is only drawn below 2,000,000 faces.'].filter(Boolean).join(' ');
     setStatus(
       s.faces || !emptyHint
         ? `${s.faces.toLocaleString()} faces · ${s.tris.toLocaleString()} tris · ${s.evalMs.toFixed(0)} ms eval / ${s.totalMs.toFixed(0)} ms total · ${s.kernel}`
@@ -278,9 +278,9 @@ export function createApp({ getJob, emptyHint = '' }) {
 
     // dense meshes would turn solid, so lines fade as the face count grows
     const density = Math.min(1, Math.sqrt(40_000 / Math.max(1, faceCount)));
-    edgeLines.visible = hasEdges && (wire || (surface && view.edges));
-    edgeLines.material.color.set(wire ? ink : '#000000');
-    edgeLines.material.opacity = wire ? Math.max(0.12, 0.9 * density) : Math.max(0.06, 0.35 * density);
+    edgeLines.visible = wire;
+    edgeLines.material.color.set(ink);
+    edgeLines.material.opacity = Math.max(0.12, 0.9 * density);
 
     contourLines.visible = mode.includes('contours');
     contourLines.material.color.set(surface ? '#141416' : ink);
@@ -321,7 +321,6 @@ export function createApp({ getJob, emptyHint = '' }) {
     refresh();
   });
   $('#color').addEventListener('change', (e) => setColorMode(e.target.value));
-  $('#edges').addEventListener('change', (e) => { view.edges = e.target.checked; refresh(); });
   $('#limit').addEventListener('change', (e) => { view.maxFaces = +e.target.value; refresh(); });
   $('#export-stl').addEventListener('click', () => exportMesh('stl'));
   $('#export-obj').addEventListener('click', () => exportMesh('obj'));
