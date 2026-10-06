@@ -18,8 +18,11 @@ const types = {
   '.png': 'image/png',
 };
 
-createServer(async (req, res) => {
-  const path = decodeURIComponent(new URL(req.url, 'http://x').pathname);
+const server = createServer(async (req, res) => {
+  const url = new URL(req.url, 'http://x');
+  const path = decodeURIComponent(url.pathname);
+  // the node editor used to live at graph.html; keep old links working
+  if (path === '/graph.html') return res.writeHead(301, { Location: `/${url.search}` }).end();
   const file = normalize(join(root, path === '/' ? 'index.html' : path));
   if (!file.startsWith(root)) return res.writeHead(403).end();
   try {
@@ -29,4 +32,14 @@ createServer(async (req, res) => {
   } catch {
     res.writeHead(404).end('not found');
   }
-}).listen(port, () => console.log(`squishables → http://localhost:${port}`));
+});
+
+// if the port is taken (e.g. another copy is already running), try the next ones
+let tries = 0;
+server.on('error', (err) => {
+  if (err.code !== 'EADDRINUSE' || ++tries > 10) throw err;
+  console.log(`port ${port + tries - 1} is busy, trying ${port + tries}…`);
+  server.listen(port + tries);
+});
+server.on('listening', () => console.log(`squishables → http://localhost:${server.address().port}`));
+server.listen(port);
