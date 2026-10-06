@@ -46,31 +46,6 @@ export const GRAPH_PRESETS = [
       [4, 'faces', 5, 'faces'], [2, 'loop', 5, 'loop'], [5, 'faces', 6, 'faces'],
     ],
   },
-  {
-    name: 'Grotto (branching + smooth)',
-    seed: 7,
-    nodes: [
-      n(1, 'box', 40, 120),
-      n(2, 'loop_start', 260, 120),
-      n(3, 'quads', 470, 100),
-      n(4, 'loop_end', 680, 120, { times: 2 }),
-      n(5, 'chance', 680, 300, { p: 85 }),
-      n(6, 'filter', 900, 140),
-      n(7, 'extrude', 1110, 60, { height: 0.4, taper: 0.35, jitter: 0.6 }),
-      n(8, 'frame', 1350, 40, { amount: 0.4 }),
-      n(9, 'extrude', 1590, 20, { height: -0.3, taper: 0.3 }),
-      n(10, 'merge', 1830, 160),
-      n(11, 'smooth', 2050, 160),
-      n(12, 'output', 2260, 160),
-    ],
-    links: [
-      [1, 'faces', 2, 'faces'], [2, 'faces', 3, 'faces'], [3, 'faces', 4, 'faces'], [2, 'loop', 4, 'loop'],
-      [4, 'faces', 6, 'faces'], [5, 'condition', 6, 'condition'],
-      [6, 'yes', 7, 'faces'], [7, 'cap', 8, 'faces'], [8, 'inner', 9, 'faces'],
-      [9, 'all', 10, 'a'], [8, 'border', 10, 'b'], [7, 'sides', 10, 'c'], [6, 'no', 10, 'd'],
-      [10, 'faces', 11, 'faces'], [11, 'faces', 12, 'faces'],
-    ],
-  },
   // Hansmeyer-style: alternating weightings fold each level into the last;
   // a final smoothing pass turns the folds into legible ridges
   chain('Platonic: ridged cube', 1, S('cube'), [{ loop: 3, body: [sub(1, 1, 0.5, { ridge: 0.2 }), sub(-0.3, 1, -0.3)] }, sub(1, 1, 0)]),
