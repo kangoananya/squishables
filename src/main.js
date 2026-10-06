@@ -1,23 +1,12 @@
 /* global LiteGraph, LGraph, LGraphCanvas */
-// squishables: node editor (Grasshopper / vvvv style, on LiteGraph) + viewport.
+// squishables: node editor + viewport.
 import { NODE_TYPES } from './kernel/nodes.js';
 import { GRAPH_PRESETS } from './graph-presets.js';
 import { createApp, $, el, download } from './viewer.js';
+import { ACCENT, CATEGORY_COLORS, LINK_COLORS } from './palette.js';
 
 const STORAGE_KEY = 'squishables.graph.v1';
 
-// palette of kango.work: magenta, black and greys only; the category shows
-// in the small square of each node's title
-const MAGENTA = '#ff1493';
-const CAT = {
-  Primitive: '#000000',
-  Split: '#5c5c5c',
-  Extrude: '#9a9a9a',
-  Subdivide: MAGENTA,
-  Logic: '#c4c4c4',
-  Loop: MAGENTA,
-  Mesh: '#333333',
-};
 const MONO = "'Roboto Mono', ui-monospace, monospace";
 
 let current = { seed: 1, nodes: {}, outputs: [] };
@@ -38,15 +27,22 @@ for (const [key, def] of Object.entries(NODE_TYPES)) {
     for (const [name, type] of def.inputs) this.addInput(name, type);
     for (const [name, type] of def.outputs) this.addOutput(name, type);
     for (const [name, spec] of Object.entries(def.params)) addParamWidget(this, name, spec);
-    this.color = '#f2f2f2';
-    this.bgcolor = '#ffffff';
-    this.boxcolor = CAT[def.cat];
+    this.applyTheme();
     this.shape = LiteGraph.BOX_SHAPE;
     this.serialize_widgets = true; // otherwise saved graphs lose every value
     this.size = this.computeSize();
     this.size[0] = Math.max(this.size[0], 190);
   }
   MeshNode.title = def.title.toLowerCase();
+  MeshNode.prototype.applyTheme = function () {
+    this.color = CATEGORY_COLORS[def.cat].title;
+    this.bgcolor = '#ffffff';
+    this.boxcolor = CATEGORY_COLORS[def.cat].box;
+  };
+  // colours come from the theme, not the file: graphs saved under an older
+  // theme would otherwise bring their node colours back on load
+  MeshNode.prototype.onConfigure = function () { this.applyTheme(); };
+  MeshNode.prototype.onSerialize = function (o) { delete o.color; delete o.bgcolor; delete o.boxcolor; };
   // LiteGraph only outlines selected nodes; on white every node needs an edge
   MeshNode.prototype.onDrawForeground = function (ctx) {
     if (this.flags.collapsed || this.is_selected) return;
@@ -75,17 +71,27 @@ LGraphCanvas.prototype.prompt = function (title, value, callback, ...rest) {
   return prompt.call(this, title, value, (v) => callback(decimalComma(v)), ...rest);
 };
 
+// LiteGraph draws the selected node's wires in hard-coded white, which
+// vanishes on the white canvas; draw them in the accent instead
+const renderLink = LGraphCanvas.prototype.renderLink;
+LGraphCanvas.prototype.renderLink = function (ctx, a, b, link, skipBorder, flow, color, ...rest) {
+  if (link == null || !this.highlighted_links[link.id]) return renderLink.call(this, ctx, a, b, link, skipBorder, flow, color, ...rest);
+  delete this.highlighted_links[link.id];
+  try { return renderLink.call(this, ctx, a, b, link, skipBorder, flow, ACCENT, ...rest); }
+  finally { this.highlighted_links[link.id] = true; }
+};
+
 LiteGraph.NODE_TITLE_COLOR = '#111111';
 LiteGraph.NODE_SELECTED_TITLE_COLOR = '#000000';
 LiteGraph.NODE_TEXT_COLOR = '#5c5c5c';
-LiteGraph.NODE_BOX_OUTLINE_COLOR = MAGENTA; // selection outline
+LiteGraph.NODE_BOX_OUTLINE_COLOR = ACCENT; // selection outline
 LiteGraph.WIDGET_BGCOLOR = '#f4f4f4';
 LiteGraph.WIDGET_OUTLINE_COLOR = '#dcdcdc';
 LiteGraph.WIDGET_TEXT_COLOR = '#222222';
 LiteGraph.WIDGET_SECONDARY_TEXT_COLOR = '#8a8a8a';
 LiteGraph.NODE_DEFAULT_SHAPE = 'box';
-LiteGraph.LINK_COLOR = '#9a9a9a';
-Object.assign(LGraphCanvas.link_type_colors, { faces: '#9a9a9a', condition: MAGENTA, loop: '#000000' });
+LiteGraph.LINK_COLOR = LINK_COLORS.faces;
+Object.assign(LGraphCanvas.link_type_colors, LINK_COLORS);
 
 // ---------------------------------------------------------------- canvas
 const graph = new LGraph();
@@ -101,7 +107,7 @@ lgc.clear_background_color = '#ffffff';
 lgc.render_shadows = false;
 lgc.render_connections_border = false;
 lgc.default_connection_color = { input_off: '#c4c4c4', input_on: '#5c5c5c', output_off: '#c4c4c4', output_on: '#5c5c5c' };
-lgc.default_connection_color_byType = { condition: MAGENTA, loop: '#000000' };
+lgc.default_connection_color_byType = { condition: LINK_COLORS.condition, loop: LINK_COLORS.loop };
 // coarse grid, drawn as lines (LiteGraph's image-pattern background can be
 // cached before the image decodes and then shows as a grey wash)
 const GRID = 100;

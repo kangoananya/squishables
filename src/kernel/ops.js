@@ -218,7 +218,7 @@ export const OPS = {
   },
 
   smooth: {
-    label: 'Smooth (Catmull–Clark)',
+    label: 'Smooth',
     global: true,
     params: {},
     outputs: {},

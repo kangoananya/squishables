@@ -9,7 +9,7 @@ const smoothLoop = (times) => ({ loop: times, body: [['smooth']] });
 
 export const GRAPH_PRESETS = [
   {
-    name: 'Tower (mola-style)',
+    name: 'Tower',
     seed: 1,
     nodes: [
       n(1, 'box', 40, 200, { width: 1, depth: 1, height: 2.6 }),

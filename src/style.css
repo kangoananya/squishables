@@ -1,4 +1,4 @@
-/* Typography and colours follow kango.work: Roboto Mono, small, lowercase,
+/* Typography and colours: monospace, small, lowercase,
    #333 on white, brown links that turn deeppink and strike through on hover. */
 
 :root {
@@ -17,7 +17,7 @@
 ::selection { color: white; background: deeppink; }
 
 body {
-  --left: 66.7%; /* node canvas : viewport ≈ 2 : 1 */
+  --left: 33.3%; /* node canvas : viewport ≈ 1 : 2 */
   margin: 0;
   height: 100vh;
   display: grid;
