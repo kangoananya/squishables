@@ -52,8 +52,11 @@ export function applyGlobal(op, p, buf, ctx, salt = 0) {
     account(ctx, out.nFaces);
     return out;
   } catch (e) {
-    if (!(e instanceof FaceLimit)) throw e;
-    stop(ctx);
+    if (e instanceof FaceLimit) stop(ctx);
+    // wasm aborts ("unreachable") or a typed array that can't be allocated
+    else if (e instanceof WebAssembly.RuntimeError || e instanceof RangeError) {
+      ctx.stopped ??= `Ran out of memory subdividing ${buf.nFaces.toLocaleString()} faces. Set a face limit or reduce depth.`;
+    } else throw e;
     return buf;
   }
 }

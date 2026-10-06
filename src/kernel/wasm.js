@@ -6,6 +6,7 @@
 import { FaceBuffer, FaceLimit } from './mesh.js';
 
 let wasm = null;
+let module = null; // kept to start a fresh instance after a trap
 let enabled = true;
 
 // `source`: a URL (browser) or the module bytes (Node)
@@ -23,6 +24,7 @@ export async function initWasm(source) {
   } else {
     result = await WebAssembly.instantiate(source, {});
   }
+  module = result.module;
   wasm = result.instance.exports;
 }
 
@@ -52,12 +54,20 @@ export function wasmCatmullClark(src, maxFaces, w, salt) {
   for (const { Type, data, len, ptr, bytes } of inputs) if (bytes) new Type(mem, ptr, len).set(data.subarray(0, len));
 
   const p = inputs.map((i) => i.ptr);
-  const status = wasm.mm_catmull_clark(
-    p[0], nV, p[1], p[2], p[3], nF, p[4], hasVid ? src.nUnique : 0,
-    p[5], p[6], p[7], p[8], nE,
-    w.vertex ?? 1, w.edge ?? 1, w.face ?? 0, w.ridge ?? 0, w.variation ?? 0, w.frequency ?? 2,
-    salt | 0, Math.min(maxFaces, 0xffffffff) >>> 0,
-  );
+  let status;
+  try {
+    status = wasm.mm_catmull_clark(
+      p[0], nV, p[1], p[2], p[3], nF, p[4], hasVid ? src.nUnique : 0,
+      p[5], p[6], p[7], p[8], nE,
+      w.vertex ?? 1, w.edge ?? 1, w.face ?? 0, w.ridge ?? 0, w.variation ?? 0, w.frequency ?? 2,
+      salt | 0, Math.min(maxFaces, 0xffffffff) >>> 0,
+    );
+  } catch (e) {
+    // a failed allocation aborts the module ("unreachable"); its memory stays
+    // grown and its allocator state is unknown, so start over with a fresh one
+    if (e instanceof WebAssembly.RuntimeError) wasm = new WebAssembly.Instance(module, {}).exports;
+    throw e;
+  }
   for (const { ptr, bytes } of inputs) if (bytes) wasm.mm_free(ptr, bytes);
   if (status === 1) throw new FaceLimit();
 
