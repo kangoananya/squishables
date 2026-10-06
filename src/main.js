@@ -75,19 +75,6 @@ LGraphCanvas.prototype.prompt = function (title, value, callback, ...rest) {
   return prompt.call(this, title, value, (v) => callback(decimalComma(v)), ...rest);
 };
 
-// white canvas with a very coarse grid (one line every 240 graph units)
-function coarseGrid(size = 240) {
-  const c = document.createElement('canvas');
-  c.width = c.height = size;
-  const ctx = c.getContext('2d');
-  ctx.fillStyle = '#fff';
-  ctx.fillRect(0, 0, size, size);
-  ctx.fillStyle = '#ececec';
-  ctx.fillRect(0, 0, size, 1);
-  ctx.fillRect(0, 0, 1, size);
-  return c.toDataURL();
-}
-
 LiteGraph.NODE_TITLE_COLOR = '#111111';
 LiteGraph.NODE_SELECTED_TITLE_COLOR = '#000000';
 LiteGraph.NODE_TEXT_COLOR = '#5c5c5c';
@@ -115,7 +102,21 @@ lgc.render_shadows = false;
 lgc.render_connections_border = false;
 lgc.default_connection_color = { input_off: '#c4c4c4', input_on: '#5c5c5c', output_off: '#c4c4c4', output_on: '#5c5c5c' };
 lgc.default_connection_color_byType = { condition: MAGENTA, loop: '#000000' };
-lgc.background_image = coarseGrid();
+// coarse grid, drawn as lines (LiteGraph's image-pattern background can be
+// cached before the image decodes and then shows as a grey wash)
+const GRID = 100;
+lgc.background_image = null;
+lgc.onDrawBackground = (ctx, area) => {
+  const [x, y, w, h] = area;
+  ctx.save();
+  ctx.strokeStyle = '#dedede';
+  ctx.lineWidth = 1 / lgc.ds.scale; // one screen pixel at any zoom
+  ctx.beginPath();
+  for (let gx = Math.floor(x / GRID) * GRID; gx <= x + w; gx += GRID) { ctx.moveTo(gx, y); ctx.lineTo(gx, y + h); }
+  for (let gy = Math.floor(y / GRID) * GRID; gy <= y + h; gy += GRID) { ctx.moveTo(x, gy); ctx.lineTo(x + w, gy); }
+  ctx.stroke();
+  ctx.restore();
+};
 lgc.onSelectionChange = (nodes) => {
   const ids = Object.keys(nodes ?? {});
   selectedId = ids.length === 1 ? Number(ids[0]) : null;

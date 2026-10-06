@@ -343,7 +343,7 @@ export function createApp({ getJob, emptyHint = '' }) {
     sp.addEventListener('pointerup', () => sp.removeEventListener('pointermove', move), { once: true });
   });
 
-  setColorMode(params.get('color'));
+  setColorMode(params.get('color') || view.colorMode); // also sets the legend's visibility
   applyDisplay();
   renderLegend();
 

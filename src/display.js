@@ -3,7 +3,7 @@
 // Backgrounds are data, so the same gradient can be shown as CSS behind the
 // transparent WebGL canvas and painted into an exported PNG.
 
-const STORAGE_KEY = 'squishables.view.v2';
+const STORAGE_KEY = 'squishables.view.v3';
 
 export const MODES = [
   ['shaded', 'shaded'],
@@ -26,7 +26,7 @@ export const BACKGROUNDS = {
 };
 
 export const DEFAULT_DISPLAY = {
-  mode: 'shaded',
+  mode: 'contours', // radial shells on startup
   contourAxis: 'radial',
   contourDensity: 1, // × the automatic spacing (see toContours)
   pointCount: 200_000,
