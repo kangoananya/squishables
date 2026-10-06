@@ -19,10 +19,37 @@ const graphCache = new Map();
 // hit the face limit aren't in the node cache, so this avoids re-running them)
 let last = { key: null, buf: null, warning: null };
 
+// growth shown while a slow graph evaluates: the same graph cut off at face
+// limits four times apart, roughly one subdivision level each (every limit
+// keeps its own node cache, since cache keys include the limit and a shared
+// cache would evict the other limits' entries). Growth stops at DRAFT_MAX:
+// larger steps would noticeably delay the full result.
+const DRAFT_START = 1000;
+const DRAFT_MAX = 256_000;
+const draftCaches = new Map();
+
+const keyOf = (job, maxFaces) => {
+  const { selected, ...rest } = job.data;
+  return JSON.stringify(rest) + maxFaces;
+};
+
+function* drafts(job, maxFaces) {
+  if (keyOf(job, maxFaces) === last.key) return; // the full result is ready
+  const { selected, ...rest } = job.data;
+  let prev = -1;
+  for (let limit = DRAFT_START; limit <= DRAFT_MAX && limit * 4 <= maxFaces; limit *= 4) {
+    if (!draftCaches.has(limit)) draftCaches.set(limit, new Map());
+    const r = runGraph({ ...rest, selected: null }, { maxFaces: limit, cache: draftCaches.get(limit) });
+    if (!r.warning) return; // the whole graph fits: the full run is just as quick
+    if (r.buf.nFaces !== prev) yield r.buf; // a level can span several limits
+    prev = r.buf.nFaces;
+  }
+}
+
 function evaluate(job, maxFaces, cache) {
   if (!cache) return runGraph(job.data, { maxFaces });
   const { selected, ...rest } = job.data;
-  const key = JSON.stringify(rest) + maxFaces;
+  const key = keyOf(job, maxFaces);
   if (key !== last.key) {
     const r = runGraph({ ...rest, selected: null }, { maxFaces, cache });
     last = { key, buf: r.buf, warning: r.warning };
@@ -35,30 +62,36 @@ function evaluate(job, maxFaces, cache) {
 self.onmessage = async (e) => {
   const { id, type, job, maxFaces, format, display = {} } = e.data;
   const kernelName = await kernel;
+  // meshes for the viewport; `draft` marks a coarse preview of a slow graph
+  function postPreview(buf, { selected = null, draft = false, ...stats } = {}) {
+    const mode = display.mode ?? 'shaded';
+    const wantEdges = mode === 'wire'; // edges are only drawn as wireframe
+    const r = toRenderBuffers(buf, wantEdges && buf.nFaces < EDGE_LIMIT);
+    const highlight = selected && selected.nFaces < 300_000 ? toEdges(selected) : null;
+    const contours = mode === 'contours' || mode === 'shaded+contours'
+      ? toContours(buf, { axis: display.contourAxis, density: display.contourDensity })
+      : null;
+    const points = mode === 'points' ? toPoints(buf, { count: display.pointCount, seed: job.data?.seed }) : null;
+    const transfer = [r.position.buffer, r.index.buffer, r.color.buffer];
+    if (r.edges) transfer.push(r.edges.buffer);
+    if (highlight) transfer.push(highlight.buffer);
+    if (contours) transfer.push(contours.buffer);
+    if (points) transfer.push(points.position.buffer, points.color.buffer);
+    self.postMessage({
+      id, type, draft, position: r.position, index: r.index, color: r.color, edges: r.edges, highlight, contours, points,
+      stats: { faces: buf.nFaces, tris: r.tris, tagCounts: r.tagCounts, kernel: kernelName,
+        edgesSkipped: wantEdges && buf.nFaces >= EDGE_LIMIT, ...stats },
+    }, transfer);
+  }
+
   try {
+    if (type === 'preview') for (const buf of drafts(job, maxFaces)) postPreview(buf, { draft: true });
     const t0 = performance.now();
     const { buf, warning, selected } = evaluate(job, maxFaces, type === 'preview' ? graphCache : null);
     const evalMs = performance.now() - t0;
 
     if (type === 'preview') {
-      const mode = display.mode ?? 'shaded';
-      const wantEdges = mode === 'wire'; // edges are only drawn as wireframe
-      const r = toRenderBuffers(buf, wantEdges && buf.nFaces < EDGE_LIMIT);
-      const highlight = selected && selected.nFaces < 300_000 ? toEdges(selected) : null;
-      const contours = mode === 'contours' || mode === 'shaded+contours'
-        ? toContours(buf, { axis: display.contourAxis, density: display.contourDensity })
-        : null;
-      const points = mode === 'points' ? toPoints(buf, { count: display.pointCount, seed: job.data?.seed }) : null;
-      const transfer = [r.position.buffer, r.index.buffer, r.color.buffer];
-      if (r.edges) transfer.push(r.edges.buffer);
-      if (highlight) transfer.push(highlight.buffer);
-      if (contours) transfer.push(contours.buffer);
-      if (points) transfer.push(points.position.buffer, points.color.buffer);
-      self.postMessage({
-        id, type, position: r.position, index: r.index, color: r.color, edges: r.edges, highlight, contours, points,
-        stats: { faces: buf.nFaces, tris: r.tris, tagCounts: r.tagCounts, evalMs, totalMs: performance.now() - t0, warning, kernel: kernelName,
-          edgesSkipped: wantEdges && buf.nFaces >= EDGE_LIMIT },
-      }, transfer);
+      postPreview(buf, { selected, evalMs, totalMs: performance.now() - t0, warning });
     } else if (type === 'export') {
       const data = format === 'obj' ? toOBJ(buf) : toSTL(buf);
       self.postMessage({ id, type, format, data, warning }, typeof data === 'string' ? [] : [data]);

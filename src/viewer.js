@@ -135,6 +135,7 @@ export function createApp({ getJob, emptyHint = '' }) {
     if (busy) { pending = true; return; }
     busy = true;
     pending = false;
+    resetGrowth(); // a newer request supersedes whatever was still to play
     busySince = performance.now();
     setStatus('computing…');
     tickBusy();
@@ -154,7 +155,7 @@ export function createApp({ getJob, emptyHint = '' }) {
       if (!busy) { ticking = false; $('#stop').hidden = true; return; }
       const s = (performance.now() - busySince) / 1000;
       if (s > 0.8) {
-        $('#status').textContent = `computing… ${s.toFixed(1)} s`;
+        $('#status').textContent = `computing… ${s.toFixed(1)} s${draftFaces ? ` · growing, ${draftFaces.toLocaleString()} faces` : ''}`;
         $('#stop').hidden = false;
       }
       setTimeout(tick, 200);
@@ -165,18 +166,58 @@ export function createApp({ getJob, emptyHint = '' }) {
     if (!busy) return;
     worker.terminate(); // also drops the worker's node cache
     spawnWorker();
+    resetGrowth();
     busy = false;
     pending = false;
     $('#stop').hidden = true;
     setStatus('stopped — lower the face limit or the depth, or edit to run again', false);
   }
 
+  // A slow graph grows on screen: the worker sends coarser versions first and
+  // they are played one level at a time. Growth only starts if the result is
+  // still missing after DRAFT_DELAY, so quick edits don't flash; once it has
+  // started, the result waits its turn so every level stays visible a moment.
+  const DRAFT_DELAY = 250;
+  const DRAFT_STEP = 180;
+  let steps = [];
+  let stepTimer = 0;
+  let growing = false;
+  let draftFaces = 0;
+
+  function resetGrowth() {
+    clearTimeout(stepTimer);
+    stepTimer = 0;
+    steps = [];
+    growing = false;
+    draftFaces = 0;
+  }
+
+  function playSteps() {
+    if (stepTimer) return;
+    const wait = growing ? DRAFT_STEP : busySince + DRAFT_DELAY - performance.now();
+    stepTimer = setTimeout(() => {
+      stepTimer = 0;
+      const m = steps.shift();
+      if (!m) return;
+      growing = !!m.draft;
+      draftFaces = m.draft ? m.stats.faces : 0;
+      showResult(m);
+      if (steps.length) playSteps();
+    }, Math.max(0, wait));
+  }
+
+  function showResult(m) {
+    if (m.type === 'error') setStatus(`Error: ${m.message}`, true);
+    else if (m.type === 'preview') showPreview(m);
+  }
+
   function onWorkerMessage(e) {
     const m = e.data;
     if (m.id !== reqId) return;
+    if (m.draft) { steps.push(m); playSteps(); return; }
     busy = false;
-    if (m.type === 'error') setStatus(`Error: ${m.message}`, true);
-    else if (m.type === 'preview') showPreview(m);
+    if (growing) { steps.push(m); playSteps(); } // finish the growth first
+    else { resetGrowth(); showResult(m); }
     if (pending) refresh();
   }
 
@@ -215,6 +256,7 @@ export function createApp({ getJob, emptyHint = '' }) {
     faceCount = m.stats.faces;
     applyDisplay();
     if (frameNext && m.stats.faces) { frameMesh(); frameNext = false; }
+    if (m.draft) return; // the status keeps counting until the full mesh arrives
     const s = m.stats;
     if (s.edgesSkipped) s.warning = [s.warning, 'Wireframe is only drawn below 2,000,000 faces.'].filter(Boolean).join(' ');
     setStatus(

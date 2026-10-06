@@ -17,10 +17,10 @@ export const GRAPH_PRESETS = [
       n(2, 'loop_start', 356, 40),
       n(3, 'subdivide', 639, 77, { vertex: 3, edge: 1, face: 0.5, ridge: 0.1, variation: 0, frequency: 2 }),
       n(4, 'subdivide', 882, 70, { vertex: -0.2, edge: 0, face: -0.9, ridge: 0, variation: 0, frequency: 2 }),
-      n(5, 'loop_end', 1139, 77, { times: 3 }),
+      n(5, 'loop_end', 1139, 77, { times: 4 }),
       n(6, 'loop_start', 1389, 77),
       n(7, 'smooth', 1639, 77),
-      n(8, 'loop_end', 1889, 77, { times: 3 }),
+      n(8, 'loop_end', 1885, 99, { times: 1 }),
       n(9, 'output', 2139, 77),
     ],
     links: [
