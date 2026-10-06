@@ -231,8 +231,8 @@ export const OPS = {
     label: 'Subdivide (weighted)',
     global: true,
     params: {
-      vertex: num(1, -2, 3), edge: num(1, -2, 3), face: num(0, -1, 1),
-      ridge: num(0, -0.5, 0.5), variation: num(0, 0, 2), frequency: num(2, 0.1, 10, 0.1),
+      vertex: num(1, -10, 10), edge: num(1, -10, 10), face: num(0, -5, 5),
+      ridge: num(0, -3, 3), variation: num(0, 0, 10), frequency: num(2, 0.1, 50, 0.1),
     },
     outputs: {},
     applyAll: (buf, p, maxFaces, salt) => catmullClark(buf, maxFaces, p, salt),
