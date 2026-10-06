@@ -4,8 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>squishables</title>
-  <link rel="stylesheet" href="src/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litegraph.js@0.7.18/css/litegraph.css">
+  <link rel="stylesheet" href="src/style.css">
   <script src="https://cdn.jsdelivr.net/npm/litegraph.js@0.7.18/build/litegraph.min.js"></script>
   <script type="importmap">
     {
@@ -19,14 +22,13 @@
 <body>
   <header id="topbar">
     <h1>squishables</h1>
-    <select id="preset"><option value="">Examples…</option></select>
-    <button id="new-doc">New</button>
-    <button id="load-json">Open</button>
-    <button id="save-json">Save</button>
-    <span class="sep"></span>
-    <label>seed <input id="seed" type="number" class="num" step="1" value="1"></label>
-    <button id="reseed" title="Random seed">↻</button>
-    <span class="sep"></span>
+    <select id="preset" title="examples"><option value="">/examples/</option></select>
+    <span class="group">
+      <button id="new-doc">/new/</button>
+      <button id="load-json">/open/</button>
+      <button id="save-json">/save/</button>
+    </span>
+    <label>seed <input id="seed" type="number" class="num" step="1" value="1"> <button id="reseed" title="random seed">/↻/</button></label>
     <label>color
       <select id="color">
         <option value="normal" selected>normals</option>
@@ -44,14 +46,16 @@
       </select>
     </label>
     <span class="grow"></span>
-    <button id="export-stl">Export STL</button>
-    <button id="export-obj">Export OBJ</button>
+    <span class="group">
+      <button id="export-stl">/export stl/</button>
+      <button id="export-obj">/export obj/</button>
+    </span>
     <input id="file" type="file" accept=".json,application/json" hidden>
   </header>
 
   <div id="graph">
     <canvas id="graph-canvas"></canvas>
-    <div id="graph-hint">Double-click to add a node · drag between slots to wire · right-click for menu · selected node's output shows green</div>
+    <div id="graph-hint">double-click: add node · drag between slots: wire · right-click: menu · selected node: pink outline</div>
   </div>
   <div id="splitter"></div>
 
@@ -59,10 +63,10 @@
     <div id="hud">
       <div id="status">loading…</div>
       <div id="warning"></div>
-      <button id="stop" hidden>Stop</button>
+      <button id="stop" hidden>/stop/</button>
     </div>
-    <button id="frame" title="Frame mesh (F)">Frame</button>
-        <div id="legend"></div>
+    <button id="frame" title="frame mesh (F)">/frame/</button>
+    <div id="legend"></div>
   </main>
 
   <script type="module" src="src/main.js"></script>

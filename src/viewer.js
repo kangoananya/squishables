@@ -88,7 +88,7 @@ export function createApp({ getJob, emptyHint = '' }) {
   // Grasshopper-style highlight of the selected node's output
   const highlight = new THREE.LineSegments(
     new THREE.BufferGeometry(),
-    new THREE.LineBasicMaterial({ color: 0x5cff8a, transparent: true, opacity: 0.9, depthTest: false }),
+    new THREE.LineBasicMaterial({ color: 0xff1493, transparent: true, opacity: 0.9, depthTest: false }),
   );
   highlight.renderOrder = 1;
   scene.add(highlight);
@@ -307,7 +307,7 @@ export function createApp({ getJob, emptyHint = '' }) {
     else applyDisplay();
   });
   viewport.append(viewPanel);
-  const viewButton = el('button', { id: 'view-toggle', title: 'Display mode & background' }, 'View');
+  const viewButton = el('button', { id: 'view-toggle', title: 'display mode & background' }, '/view/');
   viewButton.addEventListener('click', () => { viewPanel.hidden = !viewPanel.hidden; viewButton.classList.toggle('on', !viewPanel.hidden); });
   viewport.append(viewButton);
 

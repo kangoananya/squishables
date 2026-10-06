@@ -6,16 +6,17 @@ import { createApp, $, el, download } from './viewer.js';
 
 const STORAGE_KEY = 'squishables.graph.v1';
 
-// title colour, body colour per category
+// monochrome nodes; the category shows only in the small square of the title
 const CAT = {
-  Primitive: ['#a8740d', '#2f2a20'],
-  Split: ['#2f6fc7', '#1f2633'],
-  Extrude: ['#6f4fc7', '#262133'],
-  Subdivide: ['#11946e', '#1b2d28'],
-  Logic: ['#3a8db0', '#1d2a30'],
-  Loop: ['#c77f12', '#30281d'],
-  Mesh: ['#b0476a', '#2f2128'],
+  Primitive: '#a52a2a',
+  Split: '#4f7fbf',
+  Extrude: '#8a6fd1',
+  Subdivide: '#3aa57a',
+  Logic: '#ff1493',
+  Loop: '#d2691e',
+  Mesh: '#9a9a9a',
 };
+const MONO = "'Roboto Mono', ui-monospace, monospace";
 
 let current = { seed: 1, nodes: {}, outputs: [] };
 let selectedId = null;
@@ -35,12 +36,15 @@ for (const [key, def] of Object.entries(NODE_TYPES)) {
     for (const [name, type] of def.inputs) this.addInput(name, type);
     for (const [name, type] of def.outputs) this.addOutput(name, type);
     for (const [name, spec] of Object.entries(def.params)) addParamWidget(this, name, spec);
-    [this.color, this.bgcolor] = CAT[def.cat];
+    this.color = '#161616';
+    this.bgcolor = '#0b0b0b';
+    this.boxcolor = CAT[def.cat];
+    this.shape = LiteGraph.BOX_SHAPE;
     this.serialize_widgets = true; // otherwise saved graphs lose every value
     this.size = this.computeSize();
     this.size[0] = Math.max(this.size[0], 190);
   }
-  MeshNode.title = def.title;
+  MeshNode.title = def.title.toLowerCase();
   LiteGraph.registerNodeType(lgType, MeshNode);
 }
 
@@ -74,9 +78,15 @@ function coarseGrid(size = 240) {
   return c.toDataURL();
 }
 
-LiteGraph.NODE_TITLE_COLOR = '#f2efe8';
+LiteGraph.NODE_TITLE_COLOR = '#e8e8e8';
 LiteGraph.NODE_SELECTED_TITLE_COLOR = '#ffffff';
-Object.assign(LGraphCanvas.link_type_colors, { faces: '#8fd6b4', condition: '#6cc4f0', loop: '#ffb347' });
+LiteGraph.NODE_TEXT_COLOR = '#bdbdbd';
+LiteGraph.WIDGET_BGCOLOR = '#141414';
+LiteGraph.WIDGET_OUTLINE_COLOR = '#2c2c2c';
+LiteGraph.WIDGET_TEXT_COLOR = '#ededed';
+LiteGraph.WIDGET_SECONDARY_TEXT_COLOR = '#8a8a8a';
+LiteGraph.NODE_DEFAULT_SHAPE = 'box';
+Object.assign(LGraphCanvas.link_type_colors, { faces: '#d6d6d6', condition: '#ff1493', loop: '#d2691e' });
 
 // ---------------------------------------------------------------- canvas
 const graph = new LGraph();
@@ -84,6 +94,10 @@ const lgc = new LGraphCanvas($('#graph-canvas'), graph);
 window.squishables = { graph, canvas: lgc }; // handle for debugging from the console
 lgc.render_canvas_border = false;
 lgc.show_info = false;
+lgc.title_text_font = `12px ${MONO}`;
+lgc.inner_text_font = `11px ${MONO}`;
+// canvas text only uses the web font once it has loaded
+document.fonts?.load(`12px ${MONO}`).then(() => lgc.setDirty(true, true));
 lgc.clear_background_color = '#000000';
 lgc.background_image = coarseGrid();
 lgc.onSelectionChange = (nodes) => {
@@ -206,7 +220,7 @@ function save() {
 }
 addEventListener('beforeunload', save);
 
-$('#preset').append(...GRAPH_PRESETS.map((p, i) => el('option', { value: i }, p.name)));
+$('#preset').append(...GRAPH_PRESETS.map((p, i) => el('option', { value: i }, p.name.toLowerCase())));
 $('#preset').addEventListener('change', (e) => {
   if (e.target.value !== '') loadPreset(GRAPH_PRESETS[+e.target.value]);
   e.target.value = '';

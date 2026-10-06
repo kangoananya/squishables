@@ -6,11 +6,11 @@
 const STORAGE_KEY = 'squishables.view.v1';
 
 export const MODES = [
-  ['shaded', 'Shaded'],
-  ['shaded+contours', 'Shaded + contours'],
-  ['contours', 'Contour lines'],
-  ['points', 'Point cloud'],
-  ['wire', 'Wireframe'],
+  ['shaded', 'shaded'],
+  ['shaded+contours', 'shaded + contours'],
+  ['contours', 'contour lines'],
+  ['points', 'point cloud'],
+  ['wire', 'wireframe'],
 ];
 
 export const BACKGROUNDS = {
@@ -143,25 +143,25 @@ export function buildViewPanel(display, onChange) {
     const contours = d.mode.includes('contours');
     const lines = contours || d.mode === 'wire' || d.mode === 'points';
     panel.replaceChildren(
-      row('Display', select(MODES, d.mode, set('geometry', (v) => { d.mode = v; })))
+      row('display', select(MODES, d.mode, set('geometry', (v) => { d.mode = v; })))
     );
     if (contours) {
       panel.append(
-        row('Slice', select([['z', 'height (z)'], ['x', 'x'], ['y', 'y'], ['radial', 'radial shells']], d.contourAxis, set('geometry', (v) => { d.contourAxis = v; }))),
-        row('Lines', range(10, 300, 1, d.contourCount, set('geometry', (v) => { d.contourCount = v; })), h('output', {}, String(d.contourCount))),
+        row('slice', select([['z', 'height (z)'], ['x', 'x'], ['y', 'y'], ['radial', 'radial shells']], d.contourAxis, set('geometry', (v) => { d.contourAxis = v; }))),
+        row('lines', range(10, 300, 1, d.contourCount, set('geometry', (v) => { d.contourCount = v; })), h('output', {}, String(d.contourCount))),
       );
     }
     if (d.mode === 'points') {
       panel.append(
-        row('Points', select([[50000, '50k'], [200000, '200k'], [500000, '500k'], [1000000, '1M'], [2000000, '2M']], d.pointCount, set('geometry', (v) => { d.pointCount = +v; }))),
-        row('Size', range(0.5, 5, 0.1, d.pointSize, set('look', (v) => { d.pointSize = v; }))),
+        row('points', select([[50000, '50k'], [200000, '200k'], [500000, '500k'], [1000000, '1M'], [2000000, '2M']], d.pointCount, set('geometry', (v) => { d.pointCount = +v; }))),
+        row('size', range(0.5, 5, 0.1, d.pointSize, set('look', (v) => { d.pointSize = v; }))),
       );
     }
     if (lines) {
       const cb = h('input', { type: 'checkbox' });
       cb.checked = d.hiddenLines;
       cb.addEventListener('change', () => set('look', (v) => { d.hiddenLines = v; })(cb.checked));
-      panel.append(row('Hide hidden', cb));
+      panel.append(row('hide hidden', cb));
     }
 
     const swatches = h('div', { class: 'vp-swatches' });
@@ -175,7 +175,7 @@ export function buildViewPanel(display, onChange) {
     custom.style.background = backgroundCss(currentBackground({ ...d, background: 'custom' }));
     custom.addEventListener('click', () => set('look', () => { d.background = 'custom'; })());
     swatches.append(custom);
-    panel.append(h('div', { class: 'vp-title' }, 'Background'), swatches);
+    panel.append(h('div', { class: 'vp-title' }, 'background'), swatches);
 
     if (d.background === 'custom') {
       const color = (key) => {
@@ -188,12 +188,12 @@ export function buildViewPanel(display, onChange) {
       radial.checked = d.custom.radial;
       radial.addEventListener('change', () => set('look', () => { d.custom.radial = radial.checked; })());
       panel.append(
-        row('Colours', color('a'), color('b')),
-        row('Angle', range(0, 360, 5, d.custom.angle, set('look', (v) => { d.custom.angle = v; }))),
-        row('Radial', radial),
+        row('colours', color('a'), color('b')),
+        row('angle', range(0, 360, 5, d.custom.angle, set('look', (v) => { d.custom.angle = v; }))),
+        row('radial', radial),
       );
     }
-    panel.append(h('button', { class: 'vp-png', onclick: () => onChange('png') }, 'Save image (PNG)'));
+    panel.append(h('button', { class: 'vp-png', onclick: () => onChange('png') }, '/save image png/'));
   }
 
   render();
