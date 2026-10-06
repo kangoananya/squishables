@@ -28,7 +28,7 @@ export function download(blob, name) {
 }
 
 export function createApp({ getJob, emptyHint = '' }) {
-  const view = { colorMode: 'normal', maxFaces: 2_000_000 };
+  const view = { colorMode: 'normal', maxFaces: 5_000_000 };
   let faceCount = 0;
   const params = new URLSearchParams(location.search);
   const display = loadDisplay();
