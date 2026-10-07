@@ -157,6 +157,37 @@ lgc.onDrawBackground = (ctx, area) => {
   ctx.stroke();
   ctx.restore();
 };
+// Grasshopper-style right button: dragging pans the canvas, a click without
+// dragging still opens the menu. LiteGraph opens its menu on mousedown, so the
+// press is caught on its way down to the canvas and the menu opened on release
+// (move and release are caught early too: LiteGraph stops them at the canvas).
+let rightDrag = null;
+$('#graph').addEventListener('mousedown', (e) => {
+  if (e.button !== 2) return;
+  e.stopPropagation();
+  rightDrag = { x: e.clientX, y: e.clientY, moved: false, down: e };
+}, true);
+addEventListener('mousemove', (e) => {
+  if (!rightDrag) return;
+  const dx = e.clientX - rightDrag.x, dy = e.clientY - rightDrag.y;
+  if (!rightDrag.moved && Math.hypot(dx, dy) < 4) return;
+  rightDrag.moved = true;
+  rightDrag.x = e.clientX;
+  rightDrag.y = e.clientY;
+  lgc.ds.offset[0] += dx / lgc.ds.scale;
+  lgc.ds.offset[1] += dy / lgc.ds.scale;
+  lgc.setDirty(true, true);
+}, true);
+addEventListener('mouseup', (e) => {
+  if (e.button !== 2 || !rightDrag) return;
+  const { moved, down } = rightDrag;
+  rightDrag = null;
+  if (moved) return;
+  lgc.adjustMouseEvent(down);
+  const node = graph.getNodeOnPos(down.canvasX, down.canvasY, lgc.visible_nodes);
+  if (node && !lgc.selected_nodes[node.id]) lgc.selectNodes([node]);
+  lgc.processContextMenu(node, down);
+}, true);
 lgc.onSelectionChange = (nodes) => {
   const ids = Object.keys(nodes ?? {});
   selectedId = ids.length === 1 ? Number(ids[0]) : null;

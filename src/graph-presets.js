@@ -46,6 +46,8 @@ export const GRAPH_PRESETS = [
       [4, 'faces', 5, 'faces'], [2, 'loop', 5, 'loop'], [5, 'faces', 6, 'faces'],
     ],
   },
+  // the first example without its smoothing, grown harder: shards instead of folds
+  chain('Platonic: tetrahedron crystal', 1, S('tetrahedron'), [sub(1.5, 0, 0), { loop: 3, body: [sub(3, 1, 1.5, { ridge: 0.5 }), sub(-0.2, 0, -0.9)] }]),
   // Hansmeyer-style: alternating weightings fold each level into the last;
   // a final smoothing pass turns the folds into legible ridges
   chain('Platonic: ridged cube', 1, S('cube'), [{ loop: 3, body: [sub(1, 1, 0.5, { ridge: 0.2 }), sub(-0.3, 1, -0.3)] }, sub(1, 1, 0)]),
