@@ -27,8 +27,11 @@ export function download(blob, name) {
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
-export function createApp({ getJob, emptyHint = '' }) {
-  const view = { colorMode: 'normal', maxFaces: 5_000_000 };
+// `stopNote` replaces the face-limit warning, for pages that lower the limit
+// on purpose (phones)
+export function createApp({ getJob, emptyHint = '', maxFaces = 5_000_000, stopNote = null }) {
+  const view = { colorMode: 'normal', maxFaces };
+  $('#limit').value = maxFaces;
   let faceCount = 0;
   const params = new URLSearchParams(location.search);
   const display = loadDisplay();
@@ -111,7 +114,9 @@ export function createApp({ getJob, emptyHint = '' }) {
     if (!s || !s.radius) return;
     const dir = camera.position.clone().sub(controls.target).normalize();
     controls.target.copy(s.center);
-    camera.position.copy(s.center).addScaledVector(dir, (s.radius / Math.sin((camera.fov * Math.PI) / 360)) * 1.1);
+    // fit the narrower of the two angles: on a portrait screen that is the width
+    const half = Math.min(1, camera.aspect) * Math.tan((camera.fov * Math.PI) / 360);
+    camera.position.copy(s.center).addScaledVector(dir, (s.radius / Math.sin(Math.atan(half))) * 1.1);
   }
 
   // ---------------------------------------------------------------- worker
@@ -258,6 +263,7 @@ export function createApp({ getJob, emptyHint = '' }) {
     if (frameNext && m.stats.faces) { frameMesh(); frameNext = false; }
     if (m.draft) return; // the status keeps counting until the full mesh arrives
     const s = m.stats;
+    if (s.warning && stopNote) s.warning = stopNote;
     if (s.edgesSkipped) s.warning = [s.warning, 'Wireframe is only drawn below 2,000,000 faces.'].filter(Boolean).join(' ');
     setStatus(
       s.faces || !emptyHint

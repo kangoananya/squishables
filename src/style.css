@@ -220,3 +220,27 @@ input[type=checkbox] { accent-color: var(--accent); border: 0; }
   body { grid-template-columns: 1fr; grid-template-rows: auto 45vh 0 1fr; }
   #splitter { display: none; }
 }
+
+/* ---------------------------------------------------------------- phones */
+/* viewer only (see main.js): examples, seed and colour on top, the 3D view
+   below; editing, files and the face limit are left to desktops */
+
+/* minmax(0, …): the 3D canvas must not hold the column open past the screen */
+body.phone { height: 100dvh; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+body.phone #graph, body.phone #splitter,
+body.phone #topbar .group, body.phone #topbar label:has(#limit) { display: none; }
+body.phone #topbar { gap: 6px 16px; padding: 10px 16px 8px; font-size: 15px; }
+body.phone #topbar h1 { font-size: 18px; }
+body.phone #preset { flex: 1 1 160px; min-width: 0; max-width: none; } /* wide enough to push seed to the next line */
+body.phone #viewport { grid-row: 2; }
+body.phone #hud { right: 130px; font-size: 13px; }
+body.phone #view-panel { right: 8px; left: 8px; width: auto; }
+#phone-note {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 14px;
+  color: var(--hud, var(--text));
+  font-size: 13px;
+}
+#phone-note button { color: var(--hud, var(--link)); }

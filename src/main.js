@@ -16,10 +16,32 @@ const textWidth = (s) => { measure.font = `13px ${MONO}`; return measure.measure
 let current = { seed: 1, nodes: {}, outputs: [] };
 let selectedId = null;
 
+// phones get the viewer only: the node editor needs a mouse and room, and
+// full-detail meshes are too heavy to compute and draw there
+const phone = matchMedia('(pointer: coarse) and (max-width: 900px), (pointer: coarse) and (max-height: 500px)').matches;
+document.body.classList.toggle('phone', phone);
+
 const app = createApp({
   getJob: () => ({ kind: 'graph', data: current }),
   emptyHint: 'Connect something to an Output node',
+  ...(phone && { maxFaces: 250_000, stopNote: 'reduced detail on phones' }),
 });
+
+const NOTE_KEY = 'squishables.phone-note-closed';
+let noteClosed = false;
+try { noteClosed = !!localStorage.getItem(NOTE_KEY); } catch { /* storage unavailable */ }
+if (phone && !noteClosed) {
+  const editor = el('button', {}, '/editor anyway/');
+  const close = el('button', {}, '/ok/');
+  const note = el('div', { id: 'phone-note' },
+    'the node editor needs a desktop browser. here you can browse the examples, reseed and change the view. ', editor, ' ', close);
+  editor.addEventListener('click', () => { document.body.classList.remove('phone'); note.remove(); });
+  close.addEventListener('click', () => {
+    note.remove();
+    try { localStorage.setItem(NOTE_KEY, '1'); } catch { /* storage unavailable */ }
+  });
+  $('#viewport').append(note);
+}
 
 // ---------------------------------------------------------------- node types
 LiteGraph.clearRegisteredTypes();
