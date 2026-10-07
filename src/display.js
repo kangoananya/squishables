@@ -26,7 +26,7 @@ export const BACKGROUNDS = {
 };
 
 export const DEFAULT_DISPLAY = {
-  mode: 'contours', // radial shells on startup
+  mode: 'shaded+contours', // surface with radial shells on startup
   contourAxis: 'radial',
   contourDensity: 1, // × the automatic spacing (see toContours)
   pointCount: 200_000,

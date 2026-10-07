@@ -96,7 +96,10 @@ input[type=checkbox] { accent-color: var(--accent); border: 0; }
   box-shadow: 0 0 0 1px var(--rule) !important;
   padding: 4px 0 !important;
 }
-.litegraph .litemenu-title, .litegraph.litecontextmenu .litemenu-entry, .litegraph.litecontextmenu .litemenu-entry.submenu {
+/* value lists (combo widgets) open as a "dark" menu, whose entries LiteGraph
+   paints black with a more specific rule */
+.litegraph .litemenu-title, .litegraph.litecontextmenu .litemenu-entry, .litegraph.litecontextmenu .litemenu-entry.submenu,
+.litegraph.litecontextmenu.dark .litemenu-entry.submenu {
   background: #fff !important;
   color: var(--text) !important;
   font-size: 14px !important;

@@ -8,6 +8,10 @@ import { ACCENT, CATEGORY_COLORS, LINK_COLORS } from './palette.js';
 const STORAGE_KEY = 'squishables.graph.v1';
 
 const MONO = "'Roboto Mono', ui-monospace, monospace";
+// width of a string in the widget font (LiteGraph pads combo text with its
+// arrows: label at 35 px from the left, value ending 50 px from the right)
+const measure = document.createElement('canvas').getContext('2d');
+const textWidth = (s) => { measure.font = `13px ${MONO}`; return measure.measureText(s).width; };
 
 let current = { seed: 1, nodes: {}, outputs: [] };
 let selectedId = null;
@@ -41,8 +45,13 @@ for (const [key, def] of Object.entries(NODE_TYPES)) {
   };
   // colours come from the theme, not the file: graphs saved under an older
   // theme would otherwise bring their node colours back on load
-  // graphs saved with smaller type would clip their labels, so widen them
-  MeshNode.prototype.fitWidth = function () { this.size[0] = Math.max(this.size[0], this.computeSize()[0], 240); };
+  // graphs saved with smaller type would clip their labels, so widen them;
+  // a value list needs room for its label next to its longest option
+  MeshNode.prototype.fitWidth = function () {
+    const combo = (this.widgets ?? []).filter((w) => w.type === 'combo')
+      .map((w) => textWidth(w.name) + Math.max(...w.options.values.map((v) => textWidth(String(v)))) + 105);
+    this.size[0] = Math.max(this.size[0], this.computeSize()[0], 240, ...combo);
+  };
   MeshNode.prototype.onConfigure = function () { this.applyTheme(); this.fitWidth(); };
   MeshNode.prototype.onSerialize = function (o) { delete o.color; delete o.bgcolor; delete o.boxcolor; };
   // LiteGraph only outlines selected nodes; on white every node needs an edge
