@@ -191,6 +191,37 @@ addEventListener('mouseup', (e) => {
   if (node && !lgc.selected_nodes[node.id]) lgc.selectNodes([node]);
   lgc.processContextMenu(node, down);
 }, true);
+// LiteGraph reselects the pressed node on mousedown, dropping the rest of a
+// selection before it can be dragged along: keep the selection on press, and
+// narrow it to that node only if the press ends as a click without dragging
+let narrowTo = null;
+const processNodeSelected = lgc.processNodeSelected;
+lgc.processNodeSelected = function (node, e) {
+  const modified = e && (e.shiftKey || e.ctrlKey || e.metaKey);
+  if (e?.type === 'mousedown' && !modified && node.is_selected && Object.keys(this.selected_nodes).length > 1) {
+    narrowTo = { node, x: e.clientX, y: e.clientY };
+    return;
+  }
+  return processNodeSelected.call(this, node, e);
+};
+addEventListener('mouseup', (e) => {
+  if (!narrowTo) return;
+  const { node, x, y } = narrowTo;
+  narrowTo = null;
+  if (Math.hypot(e.clientX - x, e.clientY - y) < 4) lgc.selectNode(node);
+}, true);
+
+// LiteGraph strokes the Ctrl+drag selection box in white, invisible here;
+// draw it again in the accent (same graph-space coordinates)
+lgc.onDrawForeground = (ctx) => {
+  const r = lgc.dragging_rectangle;
+  if (!r) return;
+  ctx.save();
+  ctx.strokeStyle = ACCENT;
+  ctx.lineWidth = 1 / lgc.ds.scale;
+  ctx.strokeRect(r[0], r[1], r[2], r[3]);
+  ctx.restore();
+};
 lgc.onSelectionChange = (nodes) => {
   const ids = Object.keys(nodes ?? {});
   selectedId = ids.length === 1 ? Number(ids[0]) : null;
