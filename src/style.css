@@ -75,7 +75,7 @@ input[type=checkbox] { accent-color: var(--accent); border: 0; }
 /* ---------------------------------------------------------------- node editor */
 
 #graph { position: relative; min-width: 0; min-height: 0; overflow: hidden; background: #fff; }
-#graph canvas { display: block; }
+#graph canvas { display: block; outline: none; } /* focused for key events, not to be outlined */
 #graph-hint {
   position: absolute;
   left: 14px;

@@ -162,6 +162,9 @@ lgc.onDrawBackground = (ctx, area) => {
 // press is caught on its way down to the canvas and the menu opened on release
 // (move and release are caught early too: LiteGraph stops them at the canvas).
 let rightDrag = null;
+// key events (Delete / Backspace remove nodes) need the canvas focused: it has
+// a tabindex in index.html, and LiteGraph's mousedown can block focus-on-click
+$('#graph').addEventListener('mousedown', () => $('#graph-canvas').focus({ preventScroll: true }), true);
 $('#graph').addEventListener('mousedown', (e) => {
   if (e.button !== 2) return;
   e.stopPropagation();
